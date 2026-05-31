@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kop-agent"
+version = "0.1.0"
+description = "Knowledge Operating Platform — Agent Consumption Plane (MCP Server)"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+    "kop-foundation>=0.1.0",
+    "kop-ai-consumption>=0.1.0",
+    "mcp>=1.0.0",              # Model Context Protocol SDK
+    "sse-starlette>=2.0.0",    # Server-Sent Events for MCP HTTP transport
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_consumption"]
+
+[project.entry-points."kop.agent_tools"]
+kop_search = "agent_consumption.tools.search:KOPSearchTool"
+kop_retrieve = "agent_consumption.tools.retrieve:KOPRetrieveTool"
+kop_define = "agent_consumption.tools.define:KOPDefineTool"
+kop_classify = "agent_consumption.tools.classify:KOPClassifyTool"
+kop_similar = "agent_consumption.tools.similar:KOPSimilarTool"
+kop_context = "agent_consumption.tools.context:KOPContextTool"

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kop-ingestion"
+version = "0.1.0"
+description = "Knowledge Operating Platform — Ingestion Plane"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+    "kop-foundation>=0.1.0",
+    "boto3>=1.34.0",           # S3 connector
+    "aiofiles>=23.2.0",        # Filesystem connector
+    "httpx>=0.27.0",           # REST API connector
+    "python-magic>=0.4.27",    # Content type detection
+    "pypdf>=4.0.0",            # PDF parsing
+    "python-docx>=1.1.0",      # DOCX parsing
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "moto[s3]>=5.0.0",         # S3 mocking
+]
+
+sharepoint = [
+    "Office365-REST-Python-Client>=2.5.0",
+]
+
+confluence = [
+    "atlassian-python-api>=3.41.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ingestion"]
+
+[project.entry-points."kop.connectors"]
+s3 = "ingestion.connectors.cloud.s3:S3Connector"
+filesystem = "ingestion.connectors.filesystem.local:LocalFilesystemConnector"
+rest_api = "ingestion.connectors.api.rest:RESTAPIConnector"

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kop-knowledge-graph"
+version = "0.1.0"
+description = "Knowledge Operating Platform — Knowledge Graph Plane"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+    "kop-foundation>=0.1.0",
+    "kuzu>=0.4.0",              # Primary graph backend (embedded)
+]
+
+[project.optional-dependencies]
+neo4j = [
+    "neo4j>=5.18.0",           # Neo4j adapter
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/knowledge_graph"]
+
+[project.entry-points."kop.graph_adapters"]
+kuzu = "knowledge_graph.adapters.kuzu.adapter:KuzuGraphAdapter"

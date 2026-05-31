@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kop-vector"
+version = "0.1.0"
+description = "Knowledge Operating Platform — Vector Plane"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+    "kop-foundation>=0.1.0",
+    "qdrant-client>=1.9.0",    # Primary vector backend
+]
+
+[project.optional-dependencies]
+chroma = [
+    "chromadb>=0.5.0",
+]
+openai_embeddings = [
+    "openai>=1.20.0",
+]
+huggingface_embeddings = [
+    "sentence-transformers>=3.0.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vector"]
+
+[project.entry-points."kop.vector_adapters"]
+qdrant = "vector.adapters.qdrant.adapter:QdrantVectorAdapter"
+
+[project.entry-points."kop.embedding_models"]
+openai = "vector.embeddings.openai:OpenAIEmbeddingModel"

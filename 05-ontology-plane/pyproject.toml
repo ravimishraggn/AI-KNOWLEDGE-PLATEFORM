@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kop-ontology"
+version = "0.1.0"
+description = "Knowledge Operating Platform — Ontology Plane"
+requires-python = ">=3.11"
+license = { file = "../LICENSE" }
+
+dependencies = [
+    "kop-foundation>=0.1.0",
+    "rdflib>=7.0.0",           # RDF/OWL parsing (Turtle, OWL-XML, JSON-LD)
+    "owlready2>=0.46",         # OWL reasoning and validation
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ontology"]
+
+[project.entry-points."kop.ontology_parsers"]
+turtle = "ontology.parsers.turtle:TurtleOntologyParser"
+owl_xml = "ontology.parsers.owl_xml:OWLXMLOntologyParser"
+json_ld = "ontology.parsers.json_ld:JSONLDOntologyParser"

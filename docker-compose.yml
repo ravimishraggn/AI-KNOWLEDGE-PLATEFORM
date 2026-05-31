@@ -1,0 +1,149 @@
+version: "3.9"
+
+# Knowledge Operating Platform — Development Services
+# Production deployments use Kubernetes / Helm charts
+
+services:
+
+  # ----------------------------------------------------------------
+  # PostgreSQL — Primary relational store
+  # Used by: Foundation, Metadata, Canonical, Governance, Control
+  # ----------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: kop-postgres
+    environment:
+      POSTGRES_USER: kop
+      POSTGRES_PASSWORD: kop_dev_secret
+      POSTGRES_DB: knowledge_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./01-foundation/scripts/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------
+  # Redis — Cache, session store, pub/sub event bus
+  # Used by: Foundation events, Search caching, Session management
+  # ----------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: kop-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------
+  # OpenSearch — Keyword and hybrid search engine
+  # Used by: Search Plane, Metadata Plane discovery
+  # ----------------------------------------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    container_name: kop-opensearch
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=KopDev@2025!
+      - plugins.security.disabled=true
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ----------------------------------------------------------------
+  # Kuzu — Embedded graph database (primary graph backend)
+  # Used by: Knowledge Graph Plane, Lineage Plane
+  # ----------------------------------------------------------------
+  # Note: Kuzu runs embedded within the application process.
+  # No separate container needed for development.
+  # For production, see 08-knowledge-graph-plane/docs/deployment.md
+
+  # ----------------------------------------------------------------
+  # Qdrant — Vector database (primary vector backend)
+  # Used by: Vector Plane, Search Plane (semantic)
+  # ----------------------------------------------------------------
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    container_name: kop-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:6333/health | grep -q 'ok'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------
+  # Chroma — Alternative vector backend (adapter)
+  # Used by: Vector Plane (optional Chroma adapter)
+  # ----------------------------------------------------------------
+  chroma:
+    image: chromadb/chroma:0.5.0
+    container_name: kop-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/.chroma/index
+    profiles:
+      - vector-chroma
+
+  # ----------------------------------------------------------------
+  # Platform API — FastAPI application
+  # ----------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: 17-api-plane/Dockerfile
+    container_name: kop-api
+    environment:
+      - KOP_ENV=development
+      - KOP_DB_URL=postgresql://kop:kop_dev_secret@postgres:5432/knowledge_platform
+      - KOP_REDIS_URL=redis://redis:6379
+      - KOP_OPENSEARCH_URL=http://opensearch:9200
+      - KOP_QDRANT_URL=http://qdrant:6333
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    profiles:
+      - full
+
+volumes:
+  postgres_data:
+  redis_data:
+  opensearch_data:
+  qdrant_data:
+  chroma_data:
+
+networks:
+  default:
+    name: kop-network
