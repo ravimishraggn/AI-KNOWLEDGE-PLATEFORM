@@ -1,7 +1,7 @@
 # End-to-End Flow: Private Markets Intelligence Platform
 ## Multi-Tenant SaaS on the Knowledge Operating Platform
 
-> **Platform:** iLevel-style Portfolio Monitoring SaaS  
+> **Platform:** abc-style Portfolio Monitoring SaaS  
 > **Problem:** Same financial metrics (IRR, MOIC, DPI, Valuation) live in every client's database under completely different column names and table structures. No cross-client query is possible today.  
 > **Solution:** The Knowledge Operating Platform creates a semantic, canonical, and AI-queryable knowledge layer on top of every client's isolated SQL Server database.
 

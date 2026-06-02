@@ -536,7 +536,7 @@ Pick an existing classification system as your taxonomy skeleton.
 
 ```
 Private Markets options:
-  GICS  — Global Industry Classification Standard (MSCI + S&P) — 11 sectors, 24 groups, 69 industries
+  GICS  — Global Industry Classification Standard (MSCI + ABC) — 11 sectors, 24 groups, 69 industries
   NAICS — North American Industry Classification System — 20 sectors
   SIC   — Standard Industrial Classification — older, US-focused
   NACE  — European industry classification (Rev. 2)
